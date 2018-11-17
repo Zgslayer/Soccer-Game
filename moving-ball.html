@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Keyboard input</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="800" height="1000"></canvas>
+    <script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+    <script>
+
+        //canvas
+        var canvas = document.getElementById("canvas");
+        console.log("ctx", canvas)
+        var ctx = canvas.getContext("2d");
+        var width = canvas.width;
+        var height = canvas.height;
+        var currentDirection = null;
+        var directionChanged = false;
+        var ballLocation = {}
+        var ballDirection = null;
+
+        //defining the  circle
+        var circle = function (x, y, radius, fillCircle) {
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2, false); if (fillCircle) {
+                ctx.fill();
+            } else { ctx.stroke(); }
+
+        };
+        var square = function (x, y, fillRect) {
+            ctx.beginPath(); ctx.fillRect(x, y, 20, 20, Math.PI * 2, false); if (fillRect) {
+                ctx.fill();
+            } else { ctx.stroke(); }
+
+        };
+        // creating the ball
+        var Ball = function () {
+            this.x = width / 2;
+            this.y = height / 2;
+            this.xSpeed = 0; this.ySpeed = 0;
+        };
+        var Player = function () {
+            this.xPlayer = 300;
+            this.yPlayer = 300;
+            this.xPlayerSpeed = 10; this.yPlayerSpeed = 10;
+        };
+        //defining  the move
+        Player.prototype.run = function () {
+            this.xPlayer += this.xPlayerSpeed;
+            this.yPlayer += this.yPlayerSpeed;
+
+            if (this.xPlayer < 0) {
+                this.xPlayer = width;
+            } else if (this.xPlayer > width) {
+                this.xPlayer = 0;
+            } else if (this.yPlayer < 0) {
+                this.yPlayer = height;
+            } else if (this.yPlayer > height) {
+                this.yPlayer = 0;
+            }
+        };
+        Player.prototype.runDirection = function (direction, event) {
+            var xPositionMatch = false;
+            var yPositionMatch = false;
+            for (let index = ballLocation.x - 28; index < ballLocation.x + 28; index++) {
+                if (index === this.xPlayer) {
+                    xPositionMatch = true;
+                }
+            }
+            for (let index = ballLocation.y - 28; index < ballLocation.y + 28; index++) {
+                if (index === this.yPlayer) {
+                    yPositionMatch = true;
+                }
+            }
+            console.log(yPositionMatch, xPositionMatch);
+
+            if (xPositionMatch && yPositionMatch) {
+
+                console.log("direction", ballDirection);
+                if (ballDirection === "left") {
+                    ball.setDirection("stop");
+                    ball.setDirection("right");
+                } else if (ballDirection === "right") {
+                    ball.setDirection("left");
+                } else if (ballDirection === "up") {
+                    ball.setDirection("down");
+                } else if (ballDirection === "down") {
+                    ball.setDirection("up");
+                } else {
+                    ball.setDirection(direction);
+                }
+            }
+            if (direction === "up") {
+                this.xPlayerSpeed = 0;
+                this.yPlayerSpeed = 15;
+            } else if (direction === "down") {
+                this.xPlayerSpeed = 0;
+                this.yPlayerSpeed = -15;
+            } else if (direction === "left") {
+                this.xPlayerSpeed = -15;
+                this.yPlayerSpeed = 0;
+            } else if (direction === "right") {
+                this.xPlayerSpeed = 15;
+                this.yPlayerSpeed = 0;
+            } else if (direction === "stop") {
+                this.xPlayerSpeed = 0;
+                this.yPlayerSpeed = 0;
+            }
+            player.run();
+        }
+        Player.prototype.draw = function () {
+            square(this.xPlayer, this.yPlayer, 10, true);
+
+        };
+        Ball.prototype.bounce = function (x, y, currentDirection) {
+            if (x === 0) {
+                ball.setDirection("left");
+            } else if (x === 799) {
+                ball.setDirection("right");
+            }
+            if (y === 999) {
+                ball.setDirection("down");
+            } else if (y === 0) {
+                ball.setDirection("up");
+            }
+            ball.move();
+        };
+        Ball.prototype.move = function () {
+            this.x += this.xSpeed;
+            this.y += this.ySpeed;
+
+            if (this.x < 0) {
+                this.x = width;
+            } else if (this.x > width) {
+                this.x = 0;
+            } else if (this.y < 0) {
+                this.y = height;
+            } else if (this.y > height) {
+                this.y = 0;
+            }
+        };
+        Ball.prototype.setDirection = function (direction, directionChanged = false, event) {
+            console.log("diretion before change", direction);
+            if (this.directionChanged && direction === "right") {
+                direction = "left";
+                this.directionChanged = false;
+            } else if (this.directionChanged && direction === "left") {
+                direction = "right";
+                this.directionChanged = false;
+            } else if (this.directionChanged && direction === "up") {
+                direction = "up";
+                this.directionChanged = false;
+            } else if (this.directionChanged && direction === "down") {
+                direction = "down";
+                this.directionChanged = false;
+            }
+            ballDirection = direction;
+            if (direction === "up") {
+                this.xSpeed = 0;
+                this.ySpeed = 3;
+            } else if (direction === "down") {
+                this.xSpeed = 0;
+                this.ySpeed = -3;
+            } else if (direction === "left") {
+                this.xSpeed = -3;
+                this.ySpeed = 0;
+            } else if (direction === "right") {
+                this.xSpeed = 3;
+                this.ySpeed = 0;
+            } else if (direction === "stop") {
+                this.xSpeed = 0;
+                this.ySpeed = 0;
+            }
+        }
+        Ball.prototype.draw = function () {
+            ball.bounce(this.x, this.y, currentDirection);
+
+            if (this.x === 1) {
+                this.directionChanged = true;
+                ball.setDirection("stop");
+                ball.setDirection("left");
+            } else if (this.x === 799) {
+                this.directionChanged = true;
+                ball.setDirection("stop");
+                ball.setDirection("right");
+            }
+            if (this.y === 1) {
+                this.directionChanged = true;
+                ball.setDirection("stop");
+                ball.setDirection("up");
+            } else if (this.y === 999) {
+                this.directionChanged = true;
+                ball.setDirection("stop");
+                ball.setDirection("down");
+            }
+            ballLocation = { x: this.x, y: this.y };
+            circle(this.x, this.y, 10, true);
+        };
+
+        var ball = new Ball();
+        var keyActions = {
+            32: "stop",
+            37: "left",
+            39: "right",
+            40: "up",
+            38: "down"
+        };
+        var player = new Player();
+        $("body").keydown(function (event) {
+            var direction = keyActions[event.keyCode];
+            player.runDirection(direction);
+        });
+
+
+        setInterval(function () {
+            ctx.clearRect(0, 0, width, height);
+            ball.draw();
+            ball.move();
+            ctx.strokeRect(0, 0, width, height);
+
+            player.draw();
+        }, 30);
+
+    </script>
+
+</body>
+
+</html>
